@@ -1,4 +1,4 @@
-*.txt
+
 env/*
 virtual/*
 migrations/__pycache__/*
