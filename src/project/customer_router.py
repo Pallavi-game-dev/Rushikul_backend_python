@@ -1,24 +1,32 @@
+from typing import List, Optional
 from fastapi import APIRouter, Depends
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from src.schema import CustomerBase
+from src.schema import CustomerBase, getUser
 from src import models
 from src.database import getDB
+from src.utils import getResponse
 router = APIRouter(tags=["Customer"])
 
 
 
-@router.get("/get_customer_details",tags=['Customer'])
+@router.post("/get_customer_details",tags=['Customer'])
 def getCustomerDetails(
+    customer_filter:getUser,
     db:Session= Depends(getDB)
 ):
     try:
-        customers = db.query(
+
+        customer_filter = customer_filter.dict()
+        print("customer_filter",customer_filter)
+        customers_query = db.query(
             models.Customer.customer_first_name,
             models.Customer.customer_last_name,
             models.Customer.customer_email,
             models.Customer.mobile_number,
             models.Customer.gender,
             models.Customer.address,
+            models.Customer.enabled,
             models.Customer_adharcard_kyc.addharcard_number,
             models.CustomerPancardKyc.pancard_number            
         ).join(
@@ -27,23 +35,44 @@ def getCustomerDetails(
         ).join(
             models.CustomerPancardKyc,
             models.CustomerPancardKyc.customer_id==models.Customer.customer_id
-        ).all()
+        )
 
+          # Filter by customer type
+        if customer_filter["customer_type"]:
+            if 'active' in customer_filter["customer_type"]:
+                customers_query = customers_query.filter(models.Customer.enabled.is_(True))
+            if 'inactive' in customer_filter["customer_type"]:
+                customers_query = customers_query.filter(models.Customer.enabled.is_(False))
+
+        # Filter by finder_string
+        if customer_filter["finder_string"]:
+            value = customer_filter["finder_string"]
+            customers_query = customers_query.filter(
+                or_(
+                    models.Customer.customer_first_name.ilike(f"%{value}%"),
+                    models.Customer.customer_last_name.ilike(f"%{value}%"),
+                    models.Customer.customer_email.ilike(f"%{value}%"),
+                    models.Customer.mobile_number.ilike(f"%{value}%"),
+                    models.Customer.address.ilike(f"%{value}%"),
+                    models.Customer_adharcard_kyc.addharcard_number.ilike(f"%{value}%"),
+                    models.CustomerPancardKyc.pancard_number.ilike(f"%{value}%")
+                )
+            )
+
+        customers_query.all()
         customer_data=[
-            {
-                "customer_first_name":item.customer_first_name,
-                "customer_last_name":item.customer_last_name,
-                "customer_email":item.customer_email,
-                "mobile_number":item.mobile_number,
-                "gender":item.gender,
-                "address":item.address,
-                "addharcard_number":item.addharcard_number,
-                "pancard_number":item.pancard_number
-            } for item in customers
+        {
+            "customer_first_name":item.customer_first_name,
+            "customer_last_name":item.customer_last_name,
+            "customer_email":item.customer_email,
+            "mobile_number":item.mobile_number,
+            "gender":item.gender,
+            "address":item.address,
+            "addharcard_number":item.addharcard_number,
+            "pancard_number":item.pancard_number
+        } for item in customers_query
         ]
-        
-
-        return customer_data
+        return getResponse(True, customer_data,'Data get succesfully')
     except Exception as e :
         print(e)
 

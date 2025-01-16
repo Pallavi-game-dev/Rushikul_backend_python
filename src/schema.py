@@ -1,6 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel
-from typing import Union
+from typing import List, Optional, Union
 
 
 class GenderEnum(str,Enum):
@@ -15,6 +15,7 @@ class  RoleEnum(str,Enum):
     agent="Agent"
     director="Director"
 
+
 class CustomerBase(BaseModel):
     first_name: str
     last_name: str
@@ -25,6 +26,12 @@ class CustomerBase(BaseModel):
     pancard: str
     branch_id: int
     address: str
+
+    
+class getUser(BaseModel):
+    finder_string: Optional[str] = None,
+    customer_type: Optional[List[str]] = None,
+
 
 class UserData(BaseModel):
     user_name:str

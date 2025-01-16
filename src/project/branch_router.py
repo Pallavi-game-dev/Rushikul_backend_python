@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from src.schema import branchData
 from src.database import getDB
 from src import models
+from src.utils import getResponse
 
 
 router = APIRouter(tags=["Branch"])
@@ -26,7 +27,7 @@ def getBarnch(
                 "branch_location":item.branch_location,
             } for item in branch
         ]
-        return branch_list        
+        return getResponse(True, branch_list,'Barnch Data get succesfully')        
     except Exception as e :
         print(e)
     
