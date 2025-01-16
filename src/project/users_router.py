@@ -1,9 +1,10 @@
 from typing import Union
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from src.schema import CustomerBase, RoleEnum, UserData
+from src.schema import CustomerBase, RoleEnum, UpadteUserData, UserData
 from src import models
 from src.database import getDB
+from src.utils import getResponse
 router = APIRouter(tags=["User"])
 
 
@@ -64,6 +65,7 @@ def createUser(
 
     except Exception as e:
         print(e)
+
 
 
 @router.get("/get_user_director",tags=['User'])
@@ -127,3 +129,32 @@ def getUserDetails(
     except Exception as e :
         print(e)
 
+@router.post('/update_user',tags=['User'])
+def updateUser(
+    user_data:UpadteUserData,
+    db:Session= Depends(getDB)
+):
+    try:
+        user_data_dict = user_data.dict()
+        
+        existing_user  = db.query(models.User).filter(models.User.user_id == user_data_dict["user_id"]).first()
+        if not existing_user:
+           return getResponse(False,"User Not Found")
+        else:
+                db.query(models.User).filter(models.User.user_id == user_data_dict["user_id"]).update(
+            {
+                "user_name": user_data_dict["user_name"],
+                "role_id": user_data_dict["role_id"],
+                "branch_id": user_data_dict["branch_id"],
+                "user_email": user_data_dict["user_email"],
+                "mobile_number": user_data_dict["mobile_number"],
+                "manager_id": user_data_dict["manager_id"],
+            }
+        )
+
+        db.commit()
+        return getResponse(True, user_data_dict, "User Details Updated Successfully")
+
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="An error occurred while updating the user.")

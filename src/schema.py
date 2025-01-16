@@ -34,6 +34,15 @@ class UserData(BaseModel):
     mobile_number:int
     manager_id:int
 
+class UpadteUserData(BaseModel):
+    user_id:int
+    user_name:str=None
+    role_id:int=None
+    branch_id:int=None
+    user_email:str=None
+    mobile_number:int=None
+    manager_id:int=None
+
 class branchData(BaseModel):
     branch_name:str
     branch_location:str
