@@ -105,11 +105,7 @@ def addcustomer(
      
 
         if check_user_exist or check_addhar_exist or check_pan_exist:
-            return getResponse(False, {
-                "existing_mobile": check_user_exist.mobile_number, 
-                "existing_email": check_user_exist.customer_email, 
-                 "existing_aadhar": check_addhar_exist.addharcard_number, 
-                 "existing_pan": check_pan_exist.pancard_number},"User Already Exist")
+            return getResponse(False, '',"User Already Exist")
         
         new_data=models.Customer(
             customer_first_name=customer_data['first_name'],
