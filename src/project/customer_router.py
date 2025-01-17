@@ -81,45 +81,63 @@ def getCustomerDetails(
 
 @router.post("/add_customer",tags=['Customer'])
 def addcustomer(
-    customer_data:CustomerBase,
+    customer_dict:CustomerBase,
     db:Session= Depends(getDB)
 ):
     try:
-       customer_data=dict(customer_data)
-       print(customer_data['first_name'])
-       new_data=models.Customer(
-          customer_first_name=customer_data['first_name'],
-          customer_last_name=customer_data['last_name'],
-          customer_email=customer_data['email'],
-          mobile_number=customer_data['phone'],
-          gender=customer_data['gender'],
-          address=customer_data['address'],
-          branch_id=customer_data['branch_id'],
-       )
-       db.add(new_data)
-       db.commit()
-       db.refresh(new_data)
-    #    print(new_data.__dict__,"NEW")
+        customer_data=customer_dict.dict()
+        
+        check_user_exist = db.query(models.Customer).filter(
+            or_(
+                models.Customer.mobile_number == customer_data["phone"],
+                models.Customer.customer_email == customer_data["email"]
+            )
+        ).first()
 
-       aadhar=models.Customer_adharcard_kyc(
-           customer_id=new_data.customer_id,
-           addharcard_number=customer_data['aadharcard']
-       )
-       db.add(aadhar)
-       db.commit()
-       db.refresh(aadhar)
+        check_addhar_exist = db.query(models.Customer_adharcard_kyc).filter(
+                models.Customer_adharcard_kyc.addharcard_number==customer_data["aadharcard"]
+            ).first()
+      
 
-       pancard = models.CustomerPancardKyc(
-           customer_id = new_data.customer_id,
-           pancard_number = customer_data['pancard']
-       )
-       db.add(pancard)
-       db.commit()
+        check_pan_exist = db.query(models.CustomerPancardKyc).filter(
+            models.CustomerPancardKyc.pancard_number==customer_data["pancard"]
+         ).first()
+     
 
-       db.refresh(pancard)
+        if check_user_exist or check_addhar_exist or check_pan_exist:
+            return getResponse(False, {
+                "existing_mobile": check_user_exist.mobile_number, 
+                "existing_email": check_user_exist.customer_email, 
+                 "existing_aadhar": check_addhar_exist.addharcard_number, 
+                 "existing_pan": check_pan_exist.pancard_number},"User Already Exist")
+        
+        new_data=models.Customer(
+            customer_first_name=customer_data['first_name'],
+            customer_last_name=customer_data['last_name'],
+            customer_email=customer_data['email'],
+            mobile_number=customer_data['phone'],
+            gender=customer_data['gender'],
+            address=customer_data['address'],
+            branch_id=customer_data['branch_id'],
+        )
+        db.add(new_data)
+        db.flush()
+        #    print(new_data.__dict__,"NEW")
 
-       return customer_data
+        aadhar=models.Customer_adharcard_kyc(
+            customer_id=new_data.customer_id,
+            addharcard_number=customer_data['aadharcard']
+        )
+
+        pancard = models.CustomerPancardKyc(
+            customer_id = new_data.customer_id,
+            pancard_number = customer_data['pancard']
+        )
+        db.add_all([aadhar, pancard])
+        db.commit()
+        return getResponse(True, None , "Customer Added Succesfully")
     except Exception as e :
+          db.rollback()
           return getResponse(False, {"data": repr(e)})
             
 

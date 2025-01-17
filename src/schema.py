@@ -19,10 +19,10 @@ class  RoleEnum(str,Enum):
 class CustomerBase(BaseModel):
     first_name: str
     last_name: str
-    email: str=None
+    email: str
     phone: str
     gender: GenderEnum
-    aadharcard: int
+    aadharcard: str
     pancard: str
     branch_id: int
     address: str
