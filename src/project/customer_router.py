@@ -89,7 +89,7 @@ def addcustomer(
         
         check_user_exist = db.query(models.Customer).filter(
             or_(
-                models.Customer.mobile_number == customer_data["phone"],
+                models.Customer.mobile_number == customer_data["mobile_number"],
                 models.Customer.customer_email == customer_data["email"]
             )
         ).first()
@@ -111,7 +111,7 @@ def addcustomer(
             customer_first_name=customer_data['first_name'],
             customer_last_name=customer_data['last_name'],
             customer_email=customer_data['email'],
-            mobile_number=customer_data['phone'],
+            mobile_number=customer_data['mobile_number'],
             gender=customer_data['gender'],
             address=customer_data['address'],
             branch_id=customer_data['branch_id'],
@@ -154,7 +154,7 @@ def addcustomer(
                     "customer_first_name":customer_data["first_name"],
                     "customer_last_name":customer_data["last_name"],
                     "customer_email":customer_data["email"],
-                    "mobile_number":customer_data["phone"],
+                    "mobile_number":customer_data["mobile_number"],
                     "address":customer_data["address"],
                     "gender":customer_data["gender"]
                 }
