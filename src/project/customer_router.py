@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from src.schema import CustomerBase, getUser
+from src.schema import CustomerBase, UpdateCustomerBase, getUser
 from src import models
 from src.database import getDB
 from src.utils import getResponse
@@ -74,7 +74,7 @@ def getCustomerDetails(
         ]
         return getResponse(True, customer_data,'Data get succesfully')
     except Exception as e :
-        print(e)
+        return getResponse(False, {"data": repr(e)})
 
 
 @router.post("/add_customer",tags=['Customer'])
@@ -118,7 +118,47 @@ def addcustomer(
 
        return customer_data
     except Exception as e :
-        import traceback
-        traceback.print_exc()
-        print(e)
+          return getResponse(False, {"data": repr(e)})
+            
+
+@router.post("/update_customer",tags=['Customer'])
+def addcustomer(
+    customer_updated_data:UpdateCustomerBase,
+    db:Session= Depends(getDB)
+):
+    try:
+       customer_data=customer_updated_data.dict()
+       new_data=db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).first()
+       print("new_data ***********8",new_data)
+       if new_data is None:
+            getResponse(False, None,'Customer is Not Found')
+       else:
+            db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).update(
+                {
+                    "customer_first_name":customer_data["first_name"],
+                    "customer_last_name":customer_data["last_name"],
+                    "customer_email":customer_data["email"],
+                    "mobile_number":customer_data["phone"],
+                    "address":customer_data["address"],
+                    "gender":customer_data["gender"]
+                }
+            )
+            db.commit()
+            db.query(models.Customer_adharcard_kyc).filter(models.Customer_adharcard_kyc.customer_id==customer_data["customer_id"]).update(
+                {
+                    "addharcard_number":customer_data["aadharcard"]
+                }
+               
+            )
+            db.commit()
+            db.query(models.CustomerPancardKyc).filter(models.CustomerPancardKyc.customer_id==customer_data["customer_id"]).update(
+                {
+                    "pancard_number":customer_data["pancard"]
+                }
+               
+            )
+            db.commit()
+            return getResponse(True, customer_data,"Customer Data Updated Succesfully")
+    except Exception as e :
+          return getResponse(False, {"data": repr(e)})
             

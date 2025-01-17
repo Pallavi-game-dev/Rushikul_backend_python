@@ -27,7 +27,20 @@ class CustomerBase(BaseModel):
     branch_id: int
     address: str
 
-    
+class UpdateCustomerBase(BaseModel):
+    customer_id:int
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    gender: Optional[GenderEnum] = None
+    aadharcard: Optional[str] = None
+    pancard: Optional[str] = None
+    branch_id: Optional[int] = None
+    address: Optional[str] = None
+
+
+
 class getUser(BaseModel):
     finder_string: Optional[str] = None,
     customer_type: Optional[List[str]] = None,

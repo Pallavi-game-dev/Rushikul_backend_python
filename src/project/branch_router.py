@@ -29,7 +29,7 @@ def getBarnch(
         ]
         return getResponse(True, branch_list,'Barnch Data get succesfully')        
     except Exception as e :
-        print(e)
+         return getResponse(False,e)       
     
 @router.get("/add_branch",tags=["Branch"])
 def createNewBranch(
@@ -45,7 +45,9 @@ def createNewBranch(
         db.add(new_data)
         db.commit()
         db.refresh(new_data)
-        return new_data
+        return getResponse(True, new_data,'Barnch added succesfully')  
     except Exception as e :
         print(e)
+
+
 
