@@ -29,10 +29,10 @@ def getCustomerDetails(
             models.Customer.enabled,
             models.Customer_adharcard_kyc.addharcard_number,
             models.CustomerPancardKyc.pancard_number            
-        ).join(
+        ).outerjoin(
             models.Customer_adharcard_kyc,
             models.Customer_adharcard_kyc.customer_id==models.Customer.customer_id
-        ).join(
+        ).outerjoin(
             models.CustomerPancardKyc,
             models.CustomerPancardKyc.customer_id==models.Customer.customer_id
         )
@@ -69,7 +69,9 @@ def getCustomerDetails(
             "gender":item.gender,
             "address":item.address,
             "addharcard_number":item.addharcard_number,
-            "pancard_number":item.pancard_number
+            "pancard_number":item.pancard_number,
+            "enabled":item.pancard_number,
+            "enabled":item.enabled,
         } for item in customers_query
         ]
         return getResponse(True, customer_data,'Data get succesfully')

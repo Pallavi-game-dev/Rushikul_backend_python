@@ -42,7 +42,7 @@ class UpdateCustomerBase(BaseModel):
 
 
 class getUser(BaseModel):
-    finder_string: Optional[str] = None,
+    finder_string: str = None,
     customer_type: Optional[List[str]] = None,
 
 
