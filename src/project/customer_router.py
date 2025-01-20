@@ -20,12 +20,14 @@ def getCustomerDetails(
         customer_filter = customer_filter.dict()
         print("customer_filter",customer_filter)
         customers_query = db.query(
+            models.Customer.customer_id,
             models.Customer.customer_first_name,
             models.Customer.customer_last_name,
             models.Customer.customer_email,
             models.Customer.mobile_number,
             models.Customer.gender,
             models.Customer.address,
+            models.Customer.branch_id,
             models.Customer.enabled,
             models.Customer_adharcard_kyc.addharcard_number,
             models.CustomerPancardKyc.pancard_number            
@@ -60,14 +62,17 @@ def getCustomerDetails(
             )
 
         customers_query.all()
+        print(customers_query)
         customer_data=[
         {
+            "customer_id":item.customer_id,
             "customer_first_name":item.customer_first_name,
             "customer_last_name":item.customer_last_name,
             "customer_email":item.customer_email,
             "mobile_number":item.mobile_number,
             "gender":item.gender,
             "address":item.address,
+            "branch_id":item.branch_id,
             "addharcard_number":item.addharcard_number,
             "pancard_number":item.pancard_number,
             "enabled":item.pancard_number,
@@ -145,7 +150,6 @@ def addcustomer(
     try:
        customer_data=customer_updated_data.dict()
        new_data=db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).first()
-       print("new_data ***********8",new_data)
        if new_data is None:
             getResponse(False, None,'Customer is Not Found')
        else:
