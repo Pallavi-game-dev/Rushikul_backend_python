@@ -20,6 +20,7 @@ def getLoanList(
             models.loan_type.loan_type_id,
             models.Customer.customer_first_name,
             models.Customer.customer_last_name,
+            models.loan.loan_id,
             models.loan.loan_amount,
             models.loan.intrest_rate,
             models.loan.loan_start_date,
@@ -33,6 +34,7 @@ def getLoanList(
         
         data = [
             {
+            "loan_id":item.loan_id,
             "loan_type_id":item.loan_type_id,
             "customer_first_name":item.customer_first_name,
             "customer_last_name":item.customer_last_name,
@@ -43,7 +45,7 @@ def getLoanList(
             "created_by":item.created_by,
             "created_at":item.created_at,
          
-            }for item in loan_list
+            } for item in loan_list
         ] 
         print("loan_list",data)
         return data

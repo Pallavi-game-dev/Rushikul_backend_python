@@ -16,6 +16,7 @@ def getUserDetails(
 ):
     try:
         user = db.query(
+            models.User.user_id,
             models.User.role_id,
             models.User.branch_id,
             models.User.user_name,
@@ -27,6 +28,7 @@ def getUserDetails(
 
         user_data=[
             {
+                "role_id":item.user_id,
                 "role_id":item.role_id,
                 "branch_id":item.branch_id,
                 "user_name":item.user_name,
