@@ -183,7 +183,7 @@ def addcustomer(
           return getResponse(False, {"data": repr(e)})
 
 @router.post('/disabled_customer',tags=['Customer']) 
-def updateCustomer(
+def disabledCustomer(
     customer_diabled:DisabledCustomer,
     db:Session = Depends(getDB)
 ):
@@ -201,3 +201,23 @@ def updateCustomer(
     except Exception as e :
         return getResponse(False, {"data": repr(e)})
 
+
+@router.post('/enabled_customer',tags=['Customer'])
+def enabledCustomer(
+    customerDetails:DisabledCustomer,
+    db:Session = Depends(getDB)
+):
+    try:
+        userExits = db.query(models.Customer).filter(models.Customer.customer_id == customerDetails.customer_id).first()
+        if userExits is not None:
+            db.query(models.Customer).filter(models.Customer.customer_id == customerDetails.customer_id).update(
+                {
+                    "enabled":True
+                }
+            )
+            db.commit()
+            return getResponse(True,"Now User is Active ")
+        else:
+           return getResponse(False,"User Not Found")
+    except Exception as e:
+        return getResponse(False,{"data": repr(e)})
