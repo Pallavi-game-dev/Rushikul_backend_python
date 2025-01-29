@@ -20,7 +20,7 @@ class CustomerBase(BaseModel):
     first_name: str
     last_name: str
     email: str = constr(strip_whitespace=True,pattern=r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
-    mobile_number: int = constr(strip_whitespace=True,pattern=r"[0-9]+", min_length=10, max_length=10)
+    mobile_number: str = constr(strip_whitespace=True, pattern=r"^\d{10}$")  # Ensuring exactly
     gender: GenderEnum
     aadharcard: str
     pancard: str
@@ -74,3 +74,6 @@ class CreateLoan(BaseModel):
     loan_start_date:str
     loan_end_date:str
     created_by:str
+
+class DisabledCustomer(BaseModel):
+    customer_id:int

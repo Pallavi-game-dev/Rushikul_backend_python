@@ -1,0 +1,14 @@
+backend Setup after clone
+1.  python -m venv venv
+2.  .\venv\Scripts\activate      
+3.  pip install -r .\requirements.txt
+4.  uvicorn main:app --reload
+
+
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=root
+POSTGRES_SERVER=localhost
+POSTGRES_PORT=5432
+POSTGRES_DATABASE=Rushikul
+ALGORITHM=HS256
+FRONTEND_URL=http://localhost:4200

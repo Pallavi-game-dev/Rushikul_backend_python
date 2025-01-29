@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from src.schema import CustomerBase, UpdateCustomerBase, getUser
+from src.schema import CustomerBase, UpdateCustomerBase, getUser,DisabledCustomer
 from src import models
 from src.database import getDB
 from src.utils import getResponse
@@ -136,7 +136,7 @@ def addcustomer(
         )
         db.add_all([aadhar, pancard])
         db.commit()
-        return getResponse(True, None , "Customer Added Succesfully")
+        return getResponse(True,"Customer Added Succesfully")
     except Exception as e :
           db.rollback()
           return getResponse(False, {"data": repr(e)})
@@ -181,4 +181,23 @@ def addcustomer(
             return getResponse(True, customer_data,"Customer Data Updated Succesfully")
     except Exception as e :
           return getResponse(False, {"data": repr(e)})
-            
+
+@router.post('/disabled_customer',tags=['Customer']) 
+def updateCustomer(
+    customer_diabled:DisabledCustomer,
+    db:Session = Depends(getDB)
+):
+    try:
+        customerExits = db.query(models.Customer).filter(models.Customer.customer_id==customer_diabled.customer_id).first()
+        print(customerExits,"customerExits")
+        if customerExits is not None:
+           db.query(models.Customer).filter(models.Customer.customer_id==customer_diabled.customer_id).update({
+            "enabled" :False
+           })
+           db.commit()
+           return getResponse(True,"Customer Disabled Succesfully")
+        else:
+            return getResponse(False,"Customer Not Found")
+    except Exception as e :
+        return getResponse(False, {"data": repr(e)})
+

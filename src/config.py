@@ -14,4 +14,4 @@ class Settings:
                    f"{POSTGRES_PORT}/{POSTGRES_DATABASE}"
 setting = Settings()
 
-print(setting.__dict__,"Seeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+print(setting,"Connected")
