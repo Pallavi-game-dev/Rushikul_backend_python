@@ -23,3 +23,4 @@ def getResponse(is_success, data=None, message=None):
         return JSONResponse(
             content=response_data, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+

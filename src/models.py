@@ -29,7 +29,7 @@ class User(Base):
     user_name = Column(Text, nullable=False)
     user_email = Column(Text, nullable=False, unique=True)
     manager_id = Column(Integer, ForeignKey("mst_user.user_id"), nullable=True)
-    mobile_number = Column(Integer, nullable=False)
+    mobile_number = Column(Text, nullable=False)
     enabled = Column(Boolean, nullable=False, default=True)
     created_by = Column(Integer, ForeignKey("mst_user.user_id"), nullable=True)
     created_at = Column(

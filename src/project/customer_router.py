@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from src.schema import CustomerBase, UpdateCustomerBase, getUser,DisabledCustomer
+from src.schema import CustomerBase, UpdateCustomerBase, getUser,DisabledCustomer,updateAadharDetials
 from src import models
 from src.database import getDB
 from src.utils import getResponse
