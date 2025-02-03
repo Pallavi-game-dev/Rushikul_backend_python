@@ -44,6 +44,7 @@ class UpdateCustomerBase(BaseModel):
 class getUser(BaseModel):
     finder_string: str = None
     customer_type: Optional[List[str]] = None
+    customer_id:int = None
 
 
 class UserData(BaseModel):

@@ -18,7 +18,6 @@ def getCustomerDetails(
     try:
 
         customer_filter = customer_filter.dict()
-        print("customer_filter",customer_filter)
         customers_query = db.query(
             models.Customer.customer_id,
             models.Customer.customer_first_name,
@@ -60,9 +59,11 @@ def getCustomerDetails(
                     models.CustomerPancardKyc.pancard_number.ilike(f"%{value}%")
                 )
             )
-
+       
+        if customer_filter["customer_id"]:
+            customers_query = customers_query.filter(models.Customer.customer_id==customer_filter["customer_id"])
+        
         customers_query.all()
-        print(customers_query)
         customer_data=[
         {
             "customer_id":item.customer_id,
