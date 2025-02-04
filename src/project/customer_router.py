@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from src.schema import CustomerBase, UpdateCustomerBase, getUser,DisabledCustomer,updateAadharDetials
+from src.schema import CustomerBase, UpdateCustomerBase, getUser,DisabledCustomer,updateAadharDetials,customerKundali
 from src import models
 from src.database import getDB
 from src.utils import getResponse
@@ -38,14 +38,14 @@ def getCustomerDetails(
             models.CustomerPancardKyc.customer_id==models.Customer.customer_id
         )
 
-          # Filter by customer type
+          # filter by customer type
         if customer_filter["customer_type"]:
             if 'active' in customer_filter["customer_type"]:
                 customers_query = customers_query.filter(models.Customer.enabled.is_(True))
             if 'inactive' in customer_filter["customer_type"]:
                 customers_query = customers_query.filter(models.Customer.enabled.is_(False))
 
-        # Filter by finder_string
+        # filter by finder_string
         if customer_filter["finder_string"]:
             value = customer_filter["finder_string"]
             customers_query = customers_query.filter(
@@ -87,11 +87,11 @@ def getCustomerDetails(
 
 @router.post("/add_customer",tags=['Customer'])
 def addcustomer(
-    customer_dict:CustomerBase,
+    customer_details:CustomerBase,
     db:Session= Depends(getDB)
 ):
     try:
-        customer_data=customer_dict.dict()
+        customer_data=customer_details.dict()
         
         check_user_exist = db.query(models.Customer).filter(
             or_(
@@ -222,3 +222,47 @@ def enabledCustomer(
            return getResponse(False,"User Not Found")
     except Exception as e:
         return getResponse(False,{"data": repr(e)})
+
+
+@router.post('/customer_kundali',tags=["Customer"])
+def customer_kundali(
+    customer_data:customerKundali,
+    db:Session = Depends(getDB)
+):
+    try:
+        customer_all_data_dict = []
+        customer_loan_details = []
+       
+        customer_data = customer_data.dict()
+        check_customer_exist = db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).first()
+        if check_customer_exist is None:
+            return getResponse(False,"Customer Not Exist")
+        
+        customer_details  = db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).first()
+
+        check_loan_of_customer = db.query(models.loan).filter(models.loan.customer_id==customer_data["customer_id"]).all()
+
+        customer_all_data_dict = [
+            {
+                "customer_details":customer_details,
+                "check_loan_of_customer":[
+                    {
+                        "loan_type_id":item['loan_type_id'],
+                        "loan_amount":item['loan_amount'],
+                        "intrest_rate":item['intrest_rate'],
+                        "loan_start_date":item['loan_start_date'],
+                        "loan_end_date":item['loan_end_date']
+                    } for item in check_loan_of_customer
+                ],
+                
+            }
+          
+
+        ]
+
+
+        return getResponse(True,customer_all_data_dict)
+       
+
+    except Exception as e:
+         return getResponse(False,{"data": repr(e)})

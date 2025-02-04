@@ -82,3 +82,6 @@ class DisabledCustomer(BaseModel):
 class updateAadharDetials(BaseModel):
     customer_id:int
     aadharcard:str
+
+class customerKundali(BaseModel):
+    customer_id:int

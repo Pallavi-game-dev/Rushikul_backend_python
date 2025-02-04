@@ -164,6 +164,15 @@ class transaction(Base):
      amount=Column(Float,nullable=False)
      transaction_date=Column(DateTime,nullable=False)
 
+# class DepositsType(Base):
+#     __tablename__='mst_deposits_types'
+#     deposits_id:Column(Integer,primary_key=True,nullable=False,autoincrement=True)
+#     deposits_name:Column(Text,nullable=False)
 
-
-
+# class customerDeposits(Base):
+#     __tablename__='mst_customer_deposits'
+#     customer_deposits_id = Column(Integer,primary_key=True,autoincrement=True,nullable=False)
+#     customer_id = Column(Integer,ForeignKey('mst_customer.customer_id'),nullable=False)
+#     deposits_id = Column(Integer,ForeignKey('mst_deposits_types.deposits_id'),nullable=False)
+#     amount=Column(Integer,nullable=False)
+#     intrest_rate=Column(Float,nullable=False)
