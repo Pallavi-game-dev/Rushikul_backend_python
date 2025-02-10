@@ -6,6 +6,7 @@ from src.schema import CustomerBase, UpdateCustomerBase, getUser,DisabledCustome
 from src import models
 from src.database import getDB
 from src.utils import getResponse
+from src.project.common_router import upload_image
 router = APIRouter(tags=["Customer"])
 
 
@@ -143,45 +144,45 @@ def addcustomer(
           return getResponse(False, {"data": repr(e)})
             
 
-@router.post("/update_customer",tags=['Customer'])
+@router.post("/update_customer", tags=['Customer'])
 def addcustomer(
-    customer_updated_data:UpdateCustomerBase,
-    db:Session= Depends(getDB)
+    customer_updated_data: UpdateCustomerBase,
+    db: Session = Depends(getDB)
 ):
     try:
-       customer_data=customer_updated_data.dict()
-       new_data=db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).first()
-       if new_data is None:
-            getResponse(False, None,'Customer is Not Found')
-       else:
-            db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).update(
-                {
-                    "customer_first_name":customer_data["first_name"],
-                    "customer_last_name":customer_data["last_name"],
-                    "customer_email":customer_data["email"],
-                    "mobile_number":customer_data["mobile_number"],
-                    "address":customer_data["address"],
-                    "gender":customer_data["gender"]
-                }
+        # Convert Pydantic model to dictionary
+        customer_data = customer_updated_data.dict(exclude_unset=True)  # Exclude None values
+
+        # Fetch the existing customer record
+        new_data = db.query(models.Customer).filter(models.Customer.customer_id == customer_data["customer_id"]).first()
+        if new_data is None:
+            return getResponse(False, None, 'Customer is Not Found')
+
+        # Update Customer Table (Only Non-None Fields)
+        update_fields = {key: value for key, value in customer_data.items() if key in [
+            "first_name", "last_name", "email", "mobile_number", "address", "gender"
+        ] and value is not None}
+        if update_fields:
+            db.query(models.Customer).filter(models.Customer.customer_id == customer_data["customer_id"]).update(update_fields)
+
+        # Update Aadhar Card Table
+        if "aadharcard" in customer_data and customer_data["aadharcard"] is not None:
+            db.query(models.Customer_adharcard_kyc).filter(models.Customer_adharcard_kyc.customer_id == customer_data["customer_id"]).update(
+                {"addharcard_number": customer_data["aadharcard"]}
             )
-            db.commit()
-            db.query(models.Customer_adharcard_kyc).filter(models.Customer_adharcard_kyc.customer_id==customer_data["customer_id"]).update(
-                {
-                    "addharcard_number":customer_data["aadharcard"]
-                }
-               
+
+        # Update PAN Card Table
+        if "pancard" in customer_data and customer_data["pancard"] is not None:
+            db.query(models.CustomerPancardKyc).filter(models.CustomerPancardKyc.customer_id == customer_data["customer_id"]).update(
+                {"pancard_number": customer_data["pancard"]}
             )
-            db.commit()
-            db.query(models.CustomerPancardKyc).filter(models.CustomerPancardKyc.customer_id==customer_data["customer_id"]).update(
-                {
-                    "pancard_number":customer_data["pancard"]
-                }
-               
-            )
-            db.commit()
-            return getResponse(True, customer_data,"Customer Data Updated Succesfully")
-    except Exception as e :
-          return getResponse(False, {"data": repr(e)})
+
+        db.commit()
+        return getResponse(True, customer_data, "Customer Data Updated Successfully")
+
+    except Exception as e:
+        db.rollback()  # Rollback in case of failure
+        return getResponse(False, {"data": repr(e)})
 
 @router.post('/disabled_customer',tags=['Customer']) 
 def disabledCustomer(
@@ -227,24 +228,60 @@ def enabledCustomer(
 @router.post('/customer_kundali',tags=["Customer"])
 def customer_kundali(
     customer_data:customerKundali,
-    db:Session = Depends(getDB)
+    db:Session = Depends(getDB),
+    # files=Depends(upload_image)
 ):
     try:
         customer_all_data_dict = []
         customer_loan_details = []
        
-        customer_data = customer_data.dict()
+        customer_data = dict(customer_data)
         check_customer_exist = db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).first()
         if check_customer_exist is None:
             return getResponse(False,"Customer Not Exist")
         
-        customer_details  = db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).first()
+        # customer_details  = db.query(models.Customer).filter(models.Customer.customer_id==customer_data["customer_id"]).first()
+        customer_details = db.query(
+                    models.Customer.customer_id,
+                    models.Customer.customer_first_name,
+                    models.Customer.customer_last_name,
+                    models.Customer.customer_email,
+                    models.Customer.mobile_number,
+                    models.Customer.gender,
+                    models.Customer.address,
+                    models.Customer.branch_id,
+                    models.Customer.enabled,
+                    models.Customer_adharcard_kyc.addharcard_number,
+                    models.CustomerPancardKyc.pancard_number            
+                ).outerjoin(
+                    models.Customer_adharcard_kyc,
+                    models.Customer_adharcard_kyc.customer_id==models.Customer.customer_id
+                ).outerjoin(
+                    models.CustomerPancardKyc,
+                    models.CustomerPancardKyc.customer_id==models.Customer.customer_id
+                )
+        print(customer_details)
+        customer_details = customer_details.filter(models.Customer.customer_id==customer_data["customer_id"]).first()
+        print(customer_details)
 
         check_loan_of_customer = db.query(models.loan).filter(models.loan.customer_id==customer_data["customer_id"]).all()
 
         customer_all_data_dict = [
             {
-                "customer_details":customer_details,
+                "customer_details":{
+                    "customer_id":customer_details.customer_id,
+                    "customer_first_name":customer_details.customer_first_name,
+                    "customer_last_name":customer_details.customer_last_name,
+                    "customer_email":customer_details.customer_email,
+                    "mobile_number":customer_details.mobile_number,
+                    "gender":customer_details.gender,
+                    "address":customer_details.address,
+                    "branch_id":customer_details.branch_id,
+                    "addharcard_number":customer_details.addharcard_number,
+                    "pancard_number":customer_details.pancard_number,
+                    "enabled":customer_details.pancard_number,
+                    "enabled":customer_details.enabled,
+                },
                 "check_loan_of_customer":[
                     {
                         "loan_type_id":item['loan_type_id'],
@@ -253,13 +290,9 @@ def customer_kundali(
                         "loan_start_date":item['loan_start_date'],
                         "loan_end_date":item['loan_end_date']
                     } for item in check_loan_of_customer
-                ],
-                
+                ]
             }
-          
-
         ]
-
 
         return getResponse(True,customer_all_data_dict)
        
